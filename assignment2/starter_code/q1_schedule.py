@@ -25,7 +25,7 @@ class LinearSchedule(object):
         """
         ##############################################################
         """
-        TODO: modify self.epsilon such that 
+        TODO: modify self.epsilon such that
                for t = 0, self.epsilon = self.eps_begin
                for t = self.nsteps, self.epsilon = self.eps_end
                linear decay between the two
@@ -33,9 +33,10 @@ class LinearSchedule(object):
               self.epsilon should never go under self.eps_end
         """
         ##############################################################
-        ################ YOUR CODE HERE - 3-4 lines ################## 
+        ################ YOUR CODE HERE - 3-4 lines ##################
 
-        pass
+        self.epsilon += t / self.nsteps * (self.eps_end - self.eps_begin)
+        self.epsilon = np.max([self.epsilon, self.eps_end])
 
         ##############################################################
         ######################## END YOUR CODE ############## ########
@@ -71,13 +72,16 @@ class LinearExploration(LinearSchedule):
                you can access the environment stored in self.env
                and epsilon with self.epsilon
 
-               you may want to use env.action_space.sample() to generate 
-               a random action        
+               you may want to use env.action_space.sample() to generate
+               a random action
         """
         ##############################################################
         ################ YOUR CODE HERE - 4-5 lines ##################
 
-        pass
+        if np.random.random() <= self.epsilon:
+            return self.env.action_space.sample()
+        else:
+            return best_action
 
         ##############################################################
         ######################## END YOUR CODE #######################
@@ -87,7 +91,7 @@ class LinearExploration(LinearSchedule):
 def test1():
     env = EnvTest((5, 5, 1))
     exp_strat = LinearExploration(env, 1, 0, 10)
-    
+
     found_diff = False
     for i in range(10):
         rnd_act = exp_strat.get_action(0)
