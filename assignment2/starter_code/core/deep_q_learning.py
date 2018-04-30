@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 import time
 
-from q_learning import QN
+from .q_learning import QN
 
 
 class DQN(QN):
@@ -112,7 +112,7 @@ class DQN(QN):
         # for saving networks weights
         self.saver = tf.train.Saver()
 
-       
+
     def add_summary(self):
         """
         Tensorboard stuff
@@ -122,33 +122,31 @@ class DQN(QN):
         self.max_reward_placeholder = tf.placeholder(tf.float32, shape=(), name="max_reward")
         self.std_reward_placeholder = tf.placeholder(tf.float32, shape=(), name="std_reward")
 
-        self.avg_q_placeholder  = tf.placeholder(tf.float32, shape=(), name="avg_q")
-        self.max_q_placeholder  = tf.placeholder(tf.float32, shape=(), name="max_q")
-        self.std_q_placeholder  = tf.placeholder(tf.float32, shape=(), name="std_q")
+        self.avg_q_placeholder = tf.placeholder(tf.float32, shape=(), name="avg_q")
+        self.max_q_placeholder = tf.placeholder(tf.float32, shape=(), name="max_q")
+        self.std_q_placeholder = tf.placeholder(tf.float32, shape=(), name="std_q")
 
         self.eval_reward_placeholder = tf.placeholder(tf.float32, shape=(), name="eval_reward")
 
         # add placeholders from the graph
         tf.summary.scalar("loss", self.loss)
-        tf.summary.scalar("grads norm", self.grad_norm)
+        tf.summary.scalar("grads_norm", self.grad_norm)
 
         # extra summaries from python -> placeholders
-        tf.summary.scalar("Avg Reward", self.avg_reward_placeholder)
-        tf.summary.scalar("Max Reward", self.max_reward_placeholder)
-        tf.summary.scalar("Std Reward", self.std_reward_placeholder)
+        tf.summary.scalar("Avg_Reward", self.avg_reward_placeholder)
+        tf.summary.scalar("Max_Reward", self.max_reward_placeholder)
+        tf.summary.scalar("Std_Reward", self.std_reward_placeholder)
 
-        tf.summary.scalar("Avg Q", self.avg_q_placeholder)
-        tf.summary.scalar("Max Q", self.max_q_placeholder)
-        tf.summary.scalar("Std Q", self.std_q_placeholder)
+        tf.summary.scalar("Avg_Q", self.avg_q_placeholder)
+        tf.summary.scalar("Max_Q", self.max_q_placeholder)
+        tf.summary.scalar("Std_Q", self.std_q_placeholder)
 
         tf.summary.scalar("Eval Reward", self.eval_reward_placeholder)
-            
+
         # logging
         self.merged = tf.summary.merge_all()
-        self.file_writer = tf.summary.FileWriter(self.config.output_path, 
-                                                self.sess.graph)
-
-
+        self.file_writer = tf.summary.FileWriter(
+            self.config.output_path, self.sess.graph)
 
     def save(self):
         """
@@ -158,7 +156,6 @@ class DQN(QN):
             os.makedirs(self.config.model_output)
 
         self.saver.save(self.sess, self.config.model_output)
-
 
     def get_best_action(self, state):
         """
@@ -173,7 +170,6 @@ class DQN(QN):
         action_values = self.sess.run(self.q, feed_dict={self.s: [state]})[0]
         return np.argmax(action_values), action_values
 
-
     def update_step(self, t, replay_buffer, lr):
         """
         Performs an update of parameters by sampling from replay_buffer
@@ -185,42 +181,38 @@ class DQN(QN):
         Returns:
             loss: (Q - Q_target)^2
         """
-
         s_batch, a_batch, r_batch, sp_batch, done_mask_batch = replay_buffer.sample(
             self.config.batch_size)
-
 
         fd = {
             # inputs
             self.s: s_batch,
             self.a: a_batch,
             self.r: r_batch,
-            self.sp: sp_batch, 
+            self.sp: sp_batch,
             self.done_mask: done_mask_batch,
-            self.lr: lr, 
+            self.lr: lr,
             # extra info
-            self.avg_reward_placeholder: self.avg_reward, 
-            self.max_reward_placeholder: self.max_reward, 
-            self.std_reward_placeholder: self.std_reward, 
-            self.avg_q_placeholder: self.avg_q, 
-            self.max_q_placeholder: self.max_q, 
-            self.std_q_placeholder: self.std_q, 
-            self.eval_reward_placeholder: self.eval_reward, 
+            self.avg_reward_placeholder: self.avg_reward,
+            self.max_reward_placeholder: self.max_reward,
+            self.std_reward_placeholder: self.std_reward,
+            self.avg_q_placeholder: self.avg_q,
+            self.max_q_placeholder: self.max_q,
+            self.std_q_placeholder: self.std_q,
+            self.eval_reward_placeholder: self.eval_reward,
         }
-
-        loss_eval, grad_norm_eval, summary, _ = self.sess.run([self.loss, self.grad_norm, 
-                                                 self.merged, self.train_op], feed_dict=fd)
-
+        
+        loss_eval, grad_norm_eval, summary, _ = self.sess.run(
+            [self.loss, self.grad_norm, self.merged, self.train_op],
+            feed_dict=fd)
 
         # tensorboard stuff
         self.file_writer.add_summary(summary, t)
-        
-        return loss_eval, grad_norm_eval
 
+        return loss_eval, grad_norm_eval
 
     def update_target_params(self):
         """
         Update parametes of Q' with parameters of Q
         """
         self.sess.run(self.update_target_op)
-
