@@ -267,8 +267,11 @@ class Linear(DQN):
         optimizer = tf.train.AdamOptimizer(learning_rate=self.lr)
         grads_and_vars = optimizer.compute_gradients(self.loss)
         if self.config.grad_clip:
-            grads_and_vars = [(tf.clip_by_norm(g, self.config.clip_val), v)
-                              for (g, v) in grads_and_vars]
+            with tf.name_scope('clip_grads'):
+                grads_and_vars = [
+                    (tf.clip_by_norm(g, self.config.clip_val), v)
+                    for (g, v) in grads_and_vars
+                ]
 
         self.train_op = optimizer.apply_gradients(grads_and_vars)
         self.grad_norm = tf.global_norm([g for (g, _) in grads_and_vars])
