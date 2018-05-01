@@ -21,7 +21,7 @@ class NatureQN(Linear):
         Returns Q values for all actions
 
         Args:
-            state: (tf tensor) 
+            state: (tf tensor)
                 shape = (batch_size, img height, img width, nchannels)
             scope: (string) scope name, that specifies if target network or not
             reuse: (bool) reuse of variables in the scope
@@ -31,7 +31,7 @@ class NatureQN(Linear):
         """
         # this information might be useful
         num_actions = self.env.action_space.n
-        out = state
+
         ##############################################################
         """
         TODO: implement the computation of Q values like in the paper
@@ -53,9 +53,27 @@ class NatureQN(Linear):
 
         """
         ##############################################################
-        ################ YOUR CODE HERE - 10-15 lines ################ 
+        ################ YOUR CODE HERE - 10-15 lines ################
 
-        pass
+        with tf.variable_scope(scope, reuse=reuse):
+            # default activation_fn=tf.nn.relu
+            conv1 = tf.contrib.layers.conv2d(
+                state, num_outputs=32, kernel_size=(8, 8), stride=4
+            )
+            conv2 = tf.contrib.layers.conv2d(
+                conv1, num_outputs=64, kernel_size=(4, 4), stride=2
+            )
+            conv3 = tf.contrib.layers.conv2d(
+                conv2, num_outputs=64, kernel_size=(3, 3), stride=1
+            )
+            flattened = tf.contrib.layers.flatten(conv3)
+            fc = tf.contrib.layers.fully_connected(
+                flattened, num_outputs=512
+            )
+            out = tf.contrib.layers.fully_connected(
+                fc, num_outputs=num_actions,
+                scope='output_layer'
+            )
 
         ##############################################################
         ######################## END YOUR CODE #######################
@@ -69,13 +87,11 @@ if __name__ == '__main__':
     env = EnvTest((80, 80, 1))
 
     # exploration strategy
-    exp_schedule = LinearExploration(env, config.eps_begin, 
-            config.eps_end, config.eps_nsteps)
-
+    exp_schedule = LinearExploration(env, config.eps_begin,
+                                     config.eps_end, config.eps_nsteps)
     # learning rate schedule
-    lr_schedule  = LinearSchedule(config.lr_begin, config.lr_end,
-            config.lr_nsteps)
-
+    lr_schedule = LinearSchedule(config.lr_begin, config.lr_end,
+                                 config.lr_nsteps)
     # train model
     model = NatureQN(env, config)
     model.run(exp_schedule, lr_schedule)
