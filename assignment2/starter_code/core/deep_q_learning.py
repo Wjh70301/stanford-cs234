@@ -143,7 +143,7 @@ class DQN(QN):
         tf.summary.scalar("Max_Q", self.max_q_placeholder)
         tf.summary.scalar("Std_Q", self.std_q_placeholder)
 
-        tf.summary.scalar("Eval Reward", self.eval_reward_placeholder)
+        tf.summary.scalar("Eval_Reward", self.eval_reward_placeholder)
 
         # logging
         self.merged = tf.summary.merge_all()
